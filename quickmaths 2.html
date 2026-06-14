@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Quick Maths</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0f172a;font-family:'Inter','Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px 16px}
+  .screen{width:100%;max-width:420px;display:none}
+  .screen.active{display:block}
+  h1{color:#facc15;font-size:32px;font-weight:900;margin:8px 0;letter-spacing:-1px}
+  h2{color:#fff;font-size:22px;font-weight:800;margin:0}
+  p{color:#94a3b8;font-size:14px;line-height:1.7}
+  .text-input{width:100%;padding:13px;font-size:17px;font-weight:600;text-align:center;background:#1e293b;color:#fff;border:2px solid #334155;border-radius:12px;outline:none;margin-bottom:12px;font-family:inherit}
+  .text-input:focus{border-color:#facc15}
+  .btn{padding:13px 20px;font-size:15px;font-weight:700;border-radius:12px;border:none;cursor:pointer;font-family:inherit;width:100%;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .btn-primary{background:#facc15;color:#0f172a}
+  .btn-outline{background:transparent;color:#facc15;border:2px solid #facc15}
+  .row{display:flex;gap:10px}
+  .card{background:#1e293b;border-radius:20px;padding:28px 20px 20px;text-align:center;margin-bottom:14px;border:2px solid #334155;transition:border-color .25s}
+  .card.correct{border-color:#4ade80}
+  .card.wrong{border-color:#f87171}
+  #question{font-size:44px;font-weight:900;color:#fff;letter-spacing:-2px;margin-bottom:16px;user-select:none}
+  .adisp{font-size:34px;font-weight:700;color:#94a3b8;min-height:54px;background:#0f172a;border:2px solid #475569;border-radius:12px;padding:10px 16px;margin-bottom:12px}
+  .adisp.has-val{color:#facc15;border-color:#facc15}
+  .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .nk{background:#334155;color:#fff;font-size:22px;font-weight:700;border:none;border-radius:12px;padding:15px 8px;cursor:pointer;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .nk:active{background:#475569}
+  .nk.ok{background:#facc15;color:#0f172a;font-size:15px;font-weight:800}
+  .nk.ok:active{background:#eab308}
+  .nk.del{background:#1e3a5f;color:#93c5fd}
+  .nk.neg{background:#1e293b;color:#94a3b8;font-size:20px}
+  .tbar-wrap{height:6px;background:#334155;border-radius:99px;overflow:hidden;margin-bottom:14px}
+  .tbar{height:100%;border-radius:99px;transition:width 1s linear,background .3s}
+  .tmeta{display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px;color:#94a3b8}
+  .hist-item{display:flex;justify-content:space-between;background:#1e293b;border-radius:10px;padding:7px 13px;font-size:13px;margin-bottom:5px}
+  .ok-lbl{color:#4ade80;font-weight:700}
+  .bad-lbl{color:#f87171;font-weight:700}
+  .score-big{color:#facc15;font-size:52px;font-weight:900;letter-spacing:-2px;margin:8px 0}
+  .lb-row{display:flex;align-items:center;gap:12px;background:#1e293b;border-radius:14px;padding:13px 16px;margin-bottom:8px;border:2px solid transparent}
+  .lb-row.mine{border-color:#facc15}
+  .stitle{color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+  .ebig{font-size:56px;display:block;margin-bottom:8px}
+  .backbtn{background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;padding:0;margin-right:12px}
+  .lbhdr{display:flex;align-items:center;margin-bottom:20px}
+  .notice{background:#1e3a5f;border:1px solid #3b82f6;border-radius:12px;padding:14px 16px;color:#93c5fd;font-size:13px;line-height:1.6;margin-bottom:16px}
+  .notice b{color:#fff}
+  .setup-step{background:#1e293b;border-radius:12px;padding:14px;margin-bottom:10px;font-size:13px;color:#94a3b8;line-height:1.7}
+  .setup-step b{color:#facc15}
+  code{background:#0f172a;padding:2px 6px;border-radius:4px;color:#4ade80;font-size:12px;word-break:break-all}
+  .url-input{width:100%;padding:10px;font-size:12px;background:#0f172a;color:#4ade80;border:1px solid #334155;border-radius:8px;outline:none;font-family:monospace;margin-top:8px}
+</style>
+</head>
+<body>
+
+<!-- NAME -->
+<div class="screen active" id="screen-name">
+  <div style="text-align:center">
+    <span class="ebig">🧮</span>
+    <h1>Quick Maths</h1>
+    <p style="margin-bottom:24px">60 seconds · +1 correct · −2 wrong · No division<br>Beat the leaderboard!</p>
+    <input class="text-input" type="text" id="name-input" placeholder="Enter your name" maxlength="20" autocomplete="off"/>
+    <div class="row">
+      <button class="btn btn-primary" onclick="handleStart()">Play →</button>
+      <button class="btn btn-outline" onclick="viewLB()">🏆 Leaderboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAY -->
+<div class="screen" id="screen-play">
+  <div class="tmeta">
+    <span id="slabel">0 pts</span>
+    <span id="tnum" style="font-size:18px;font-weight:800;color:#facc15">60s</span>
+  </div>
+  <div class="tbar-wrap"><div class="tbar" id="tbar" style="width:100%;background:#facc15"></div></div>
+  <div class="card" id="qcard">
+    <div id="question">? + ? = ?</div>
+    <div class="adisp" id="adisp">_</div>
+    <div class="numpad">
+      <button class="nk" onclick="nk('7')">7</button>
+      <button class="nk" onclick="nk('8')">8</button>
+      <button class="nk" onclick="nk('9')">9</button>
+      <button class="nk" onclick="nk('4')">4</button>
+      <button class="nk" onclick="nk('5')">5</button>
+      <button class="nk" onclick="nk('6')">6</button>
+      <button class="nk" onclick="nk('1')">1</button>
+      <button class="nk" onclick="nk('2')">2</button>
+      <button class="nk" onclick="nk('3')">3</button>
+      <button class="nk neg" onclick="nk('-')">±</button>
+      <button class="nk" onclick="nk('0')">0</button>
+      <button class="nk del" onclick="nk('del')">⌫</button>
+      <button class="nk ok" style="grid-column:span 3" onclick="doSubmit()">Submit ✓</button>
+    </div>
+  </div>
+  <div id="hist"></div>
+</div>
+
+<!-- DONE -->
+<div class="screen" id="screen-done">
+  <div style="text-align:center">
+    <span class="ebig" id="done-emoji">🏆</span>
+    <h2 id="done-title"></h2>
+    <div class="score-big" id="done-score"></div>
+    <p id="done-sub" style="margin-bottom:16px"></p>
+    <div id="mini-lb" style="background:#1e293b;border-radius:16px;padding:16px;margin-bottom:20px;text-align:left;display:none">
+      <div class="stitle">🏆 Top Scores</div>
+      <div id="mini-lb-list"></div>
+    </div>
+    <div class="row">
+      <button class="btn btn-primary" onclick="playAgain()">Play Again</button>
+      <button class="btn btn-outline" onclick="viewLB()">Full Board 🏆</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="screen" id="screen-lb">
+  <div class="lbhdr">
+    <button class="backbtn" onclick="goBack()">←</button>
+    <h2>🏆 Leaderboard</h2>
+  </div>
+  <div id="lb-list"></div>
+  <div style="text-align:center;margin-top:20px">
+    <button class="btn btn-primary" style="width:auto;padding:13px 32px" onclick="goToName()">Play Now →</button>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div class="screen" id="screen-setup">
+  <div class="lbhdr">
+    <button class="backbtn" onclick="show('screen-name')">←</button>
+    <h2>⚙️ Setup Leaderboard</h2>
+  </div>
+  <p style="margin-bottom:16px">One-time setup using a free Google Sheet. Takes 3 minutes.</p>
+
+  <div class="setup-step">
+    <b>Step 1</b> — Open this link in your browser:<br>
+    <code>script.google.com/home</code>
+  </div>
+  <div class="setup-step">
+    <b>Step 2</b> — Click <b>New Project</b>, paste this code replacing all existing code, then click <b>Deploy → New Deployment → Web App → Anyone → Deploy</b>:<br><br>
+    <code id="apps-script-code"></code>
+    <button class="btn btn-outline" style="margin-top:10px;font-size:13px;padding:8px" onclick="copyScript()">Copy Script Code</button>
+  </div>
+  <div class="setup-step">
+    <b>Step 3</b> — Paste the Web App URL here and click Save:<br>
+    <input class="url-input" id="script-url-input" placeholder="https://script.google.com/macros/s/.../exec"/>
+    <button class="btn btn-primary" style="margin-top:10px;font-size:13px;padding:10px" onclick="saveScriptUrl()">Save & Start Playing</button>
+  </div>
+</div>
+
+<script>
+const SCRIPT_CODE = `function doGet(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName("scores");
+  if (!sh) { sh = ss.insertSheet("scores"); sh.appendRow(["name","score","total","date","ts"]); }
+  const action = e.parameter.action;
+  if (action === "get") {
+    const rows = sh.getDataRange().getValues().slice(1);
+    const entries = rows.map(r => ({name:r[0],score:Number(r[1]),total:Number(r[2]),date:r[3]}))
+                        .sort((a,b)=>b.score-a.score).slice(0,20);
+    return ContentService.createTextOutput(JSON.stringify(entries)).setMimeType(ContentService.MimeType.JSON);
+  }
+  if (action === "post") {
+    sh.appendRow([e.parameter.name, Number(e.parameter.score), Number(e.parameter.total), e.parameter.date, Date.now()]);
+    return ContentService.createTextOutput("ok").setMimeType(ContentService.MimeType.TEXT);
+  }
+  return ContentService.createTextOutput("noop");
+}`;
+
+document.getElementById("apps-script-code").textContent = SCRIPT_CODE;
+
+function copyScript() {
+  navigator.clipboard.writeText(SCRIPT_CODE).then(()=>alert("Copied! Paste it into Apps Script."));
+}
+
+// ── Script URL storage ────────────────────────────────────────────
+function getScriptUrl() { return localStorage.getItem("qm_script_url") || ""; }
+function saveScriptUrl() {
+  const u = document.getElementById("script-url-input").value.trim();
+  if (!u.startsWith("http")) { alert("Please paste a valid URL"); return; }
+  localStorage.setItem("qm_script_url", u);
+  alert("Saved! You can now play with a shared leaderboard.");
+  show("screen-name");
+}
+
+// ── API calls ─────────────────────────────────────────────────────
+async function apiGet() {
+  const url = getScriptUrl();
+  if (!url) return localGet();
+  try {
+    const r = await fetch(url + "?action=get");
+    if (!r.ok) throw new Error();
+    return await r.json();
+  } catch { return localGet(); }
+}
+
+async function apiPost(entry) {
+  const url = getScriptUrl();
+  if (!url) { localPost(entry); return; }
+  try {
+    const p = new URLSearchParams({action:"post", ...entry});
+    await fetch(url + "?" + p.toString());
+  } catch {}
+  localPost(entry); // always save locally too
+}
+
+// ── Local fallback ────────────────────────────────────────────────
+function localGet() {
+  try {
+    const d = JSON.parse(localStorage.getItem("qm_scores") || "[]");
+    return d.sort((a,b)=>b.score-a.score).slice(0,20);
+  } catch { return []; }
+}
+function localPost(entry) {
+  try {
+    const d = JSON.parse(localStorage.getItem("qm_scores") || "[]");
+    d.push(entry);
+    d.sort((a,b)=>b.score-a.score);
+    localStorage.setItem("qm_scores", JSON.stringify(d.slice(0,50)));
+  } catch {}
+}
+
+// ── State ─────────────────────────────────────────────────────────
+let pname="", score=0, total=0, tLeft=60, tInt=null, curQ=null, locked=false;
+let fScore=0, fTotal=0, ans="";
+
+// ── Helpers ───────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+function medal(i) { return ["🥇","🥈","🥉"][i]||"#"+(i+1); }
+function mcolor(i) { return ["#facc15","#cbd5e1","#fb923c"][i]||"#94a3b8"; }
+function genQ() {
+  const ops=["+","-","×"], op=ops[Math.floor(Math.random()*3)];
+  const a=Math.floor(Math.random()*9)+1;
+  const b=op==="-"?Math.floor(Math.random()*a)+1:Math.floor(Math.random()*9)+1;
+  return {a,b,op,answer:op==="+"?a+b:op==="-"?a-b:a*b};
+}
+
+function renderLB(entries, containerId, miniMode) {
+  if (!entries || entries.length===0) {
+    document.getElementById(containerId).innerHTML='<p style="text-align:center;color:#94a3b8;padding:20px 0">No scores yet!</p>';
+    return;
+  }
+  const list = miniMode ? entries.slice(0,5) : entries;
+  document.getElementById(containerId).innerHTML = list.map((e,i)=>
+    miniMode
+    ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:${i<list.length-1?"1px solid #334155":"none"}">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">${medal(i)}</span>
+          <span style="color:${e.name===pname&&e.score===fScore?"#facc15":"#fff"};font-weight:${e.name===pname&&e.score===fScore?700:400};font-size:15px">${e.name}</span>
+        </div>
+        <span style="color:${mcolor(i)};font-weight:700;font-size:16px">${e.score}</span>
+      </div>`
+    : `<div class="lb-row ${e.name===pname&&e.score===fScore?"mine":""}">
+        <span style="font-size:20px;width:28px;text-align:center">${medal(i)}</span>
+        <div style="flex:1">
+          <div style="color:${e.name===pname&&e.score===fScore?"#facc15":"#fff"};font-weight:700;font-size:15px">${e.name}</div>
+          <div style="color:#94a3b8;font-size:12px">${e.date} · ${e.total} answered</div>
+        </div>
+        <span style="color:${mcolor(i)};font-weight:900;font-size:20px">${e.score}</span>
+      </div>`
+  ).join("");
+}
+
+// ── Numpad ────────────────────────────────────────────────────────
+function nk(k) {
+  if(locked) return;
+  if(k==="del") ans=ans.slice(0,-1);
+  else if(k==="-") ans=ans.startsWith("-")?ans.slice(1):"-"+ans;
+  else { if(ans.replace("-","").length>=3) return; ans+=k; }
+  const d=document.getElementById("adisp");
+  d.textContent=ans||"_";
+  d.className="adisp"+(ans?" has-val":"");
+}
+
+// ── Game ──────────────────────────────────────────────────────────
+function handleStart() {
+  const n=document.getElementById("name-input").value.trim();
+  if(!n) return;
+  pname=n; startGame();
+}
+document.getElementById("name-input").addEventListener("keydown",e=>{ if(e.key==="Enter") handleStart(); });
+
+function startGame() {
+  score=0;total=0;tLeft=60;locked=false;ans="";
+  document.getElementById("hist").innerHTML="";
+  updateMeta(); show("screen-play"); nextQ();
+  clearInterval(tInt); tInt=setInterval(tick,1000);
+}
+
+function tick() { tLeft--; updateMeta(); if(tLeft<=0) endGame(); }
+
+function updateMeta() {
+  const c=tLeft>20?"#facc15":tLeft>10?"#fb923c":"#f87171";
+  document.getElementById("tnum").textContent=tLeft+"s";
+  document.getElementById("tnum").style.color=c;
+  document.getElementById("tbar").style.width=(tLeft/60*100)+"%";
+  document.getElementById("tbar").style.background=c;
+  document.getElementById("slabel").innerHTML=pname+' — <span style="color:'+(score<0?"#f87171":"#fff")+';font-weight:700">'+score+' pts</span>';
+}
+
+function nextQ() {
+  curQ=genQ(); ans=""; locked=false;
+  document.getElementById("question").textContent=curQ.a+" "+curQ.op+" "+curQ.b+" = ?";
+  const d=document.getElementById("adisp"); d.textContent="_"; d.className="adisp";
+  document.getElementById("qcard").className="card";
+}
+
+function doSubmit() {
+  if(locked||!curQ||!ans||ans==="-") return;
+  locked=true;
+  const num=parseInt(ans,10), ok=num===curQ.answer;
+  score+=ok?1:-2; total++; updateMeta();
+  document.getElementById("qcard").className="card "+(ok?"correct":"wrong");
+  const h=document.getElementById("hist");
+  const it=document.createElement("div"); it.className="hist-item";
+  it.innerHTML=`<span style="color:#94a3b8">${curQ.a} ${curQ.op} ${curQ.b} = ${curQ.answer}</span>`+(ok?`<span class="ok-lbl">✓ +1</span>`:`<span class="bad-lbl">✗ −2 (${num})</span>`);
+  h.insertBefore(it,h.firstChild);
+  if(h.children.length>5) h.removeChild(h.lastChild);
+  setTimeout(nextQ,350);
+}
+
+async function endGame() {
+  clearInterval(tInt);
+  fScore=score; fTotal=total;
+  show("screen-done");
+  document.getElementById("done-emoji").textContent=fScore>=10?"🏆":fScore>=5?"👍":"💪";
+  document.getElementById("done-title").textContent="Time's up, "+pname+"!";
+  document.getElementById("done-score").innerHTML=fScore+' <span style="color:#94a3b8;font-size:20px;font-weight:400">pts</span>';
+  document.getElementById("done-sub").textContent=fTotal+" questions answered";
+  document.getElementById("mini-lb").style.display="none";
+
+  const entry={name:pname,score:fScore,total:fTotal,date:new Date().toLocaleDateString()};
+  await apiPost(entry);
+  const entries=await apiGet();
+
+  const myRank=entries.findIndex(e=>e.name===pname&&e.score===fScore);
+  if(myRank>=0) document.getElementById("done-sub").textContent=fTotal+" questions · You ranked #"+(myRank+1)+" 🎉";
+
+  renderLB(entries,"mini-lb-list",true);
+  document.getElementById("mini-lb").style.display="block";
+}
+
+async function viewLB() {
+  show("screen-lb");
+  document.getElementById("lb-list").innerHTML='<p style="color:#94a3b8;text-align:center;padding:20px">Loading…</p>';
+  const entries=await apiGet();
+  renderLB(entries,"lb-list",false);
+}
+
+function playAgain() { startGame(); }
+function goBack() { show(pname?"screen-done":"screen-name"); }
+function goToName() { show("screen-name"); }
+</script>
+</body>
+</html>
